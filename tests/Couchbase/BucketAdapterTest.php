@@ -1,0 +1,98 @@
+<?php
+
+namespace EmmTest\Infrastructure\Couchbase;
+
+use Brofist\Couchbase\BucketAdapter;
+use Brofist\Couchbase\QueryResultSet;
+use CouchbaseBucket;
+use CouchbaseN1qlQuery;
+use PHPUnit_Framework_TestCase;
+use Prophecy\Prophecy\ObjectProphecy;
+
+class BucketAdapterTest extends PHPUnit_Framework_TestCase
+{
+    /**
+     * @var BucketAdapter
+     */
+    protected $adapter;
+
+    /**
+     * @var CouchbaseBucket | ObjectProphecy
+     */
+    protected $bucket;
+
+    /**
+     * @before
+     */
+    public function initialize()
+    {
+        $this->bucket = $this->prophesize(CouchbaseBucket::class);
+        $this->adapter = new BucketAdapter($this->bucket->reveal(), 'bucketName');
+    }
+
+    /**
+     * @test
+     */
+    public function canFindObjectsByQuery()
+    {
+        $this->mockQuery('SELECT * FROM `bucketName`');
+
+        $actual = $this->adapter->findAll();
+
+        $this->assertEquals(new QueryResultSet(new \StdClass()), $actual);
+    }
+
+    /**
+     * @test
+     */
+    public function canFindAllByConditions()
+    {
+        $query = $this->mockQuery('SELECT * FROM `bucketName` WHERE foo = $foo AND bar = $bar');
+
+        $query->namedParams([
+            'foo' => 'fooValue',
+            'bar' => 'barValue',
+        ]);
+
+        $actual = $this->adapter->findAllBy([
+            'foo' => 'fooValue',
+            'bar' => 'barValue',
+        ]);
+
+        $this->assertEquals(new QueryResultSet(new \StdClass()), $actual);
+    }
+
+    /**
+     * @test
+     */
+    public function canFindAllByConditionsAndLimit()
+    {
+        $query = $this->mockQuery('SELECT * FROM `bucketName` WHERE foo = $foo AND bar = $bar LIMIT 1');
+
+        $query->namedParams([
+            'foo' => 'fooValue',
+            'bar' => 'barValue',
+        ]);
+
+        $actual = $this->adapter->findAllBy(
+            [
+                'foo' => 'fooValue',
+                'bar' => 'barValue',
+            ],
+            [
+                'limit' => 1,
+            ]
+        );
+
+        $this->assertEquals(new QueryResultSet(new \StdClass()), $actual);
+    }
+
+    private function mockQuery($string)
+    {
+        $expectedQuery = CouchbaseN1qlQuery::fromString($string);
+
+        $this->bucket->query($expectedQuery, true)->willReturn(new \stdClass());
+
+        return $expectedQuery;
+    }
+}
