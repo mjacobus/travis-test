@@ -10,9 +10,10 @@ class BucketAdapter
 {
     const OPTION_LIMIT = 'limit';
 
-    private $availableOptions = [
-        self::OPTION_LIMIT,
-    ];
+    /**
+     * @var QueryBuilder
+     */
+    private $queryBuilder;
 
     /**
      * @var CouchbaseBucket
@@ -24,8 +25,13 @@ class BucketAdapter
      */
     private $bucketName;
 
+    /**
+     * @param CouchbaseBucket $bucket
+     * @param string $bucketName
+     */
     public function __construct(CouchbaseBucket $bucket, $bucketName)
     {
+        $this->queryBuilder = new QueryBuilder();
         $this->bucket = $bucket;
         $this->bucketName = $bucketName;
     }
@@ -65,7 +71,7 @@ class BucketAdapter
      */
     public function findAll()
     {
-        return $this->query($this->getSelectAll());
+        return $this->fetchAll($this->select());
     }
 
     /**
@@ -78,63 +84,46 @@ class BucketAdapter
      */
     public function findAllBy(array $conditions, array $options = [])
     {
-        $append = ['WHERE'];
-        $conditionParts = [];
+        $query = $this->select();
+        $query = $this->applyOptions($query, $options);
 
-        foreach (array_keys($conditions) as $key) {
-            $conditionParts[] = "$key = $$key";
-        }
-
-        $append[] = implode(' AND ', $conditionParts);
-
-        if (array_key_exists('limit', $options)) {
-            $append[] = 'LIMIT ' . (int) $options['limit'];
-        }
-
-        return $this->query($this->getSelectAll($append), $conditions);
+        return $this->fetchAll($query, $conditions);
     }
 
     /**
-     * @throws CouchbaseException
+     * @return QueryResultSet
+     */
+    protected function fetchAll(QueryBuilder $query, array $conditions = [])
+    {
+        $n1ql = CouchbaseN1qlQuery::fromString($query->where($conditions));
+
+        if ($conditions) {
+            $n1ql->namedParams($conditions);
+        }
+
+        return new QueryResultSet($this->bucket->query($n1ql, true));
+    }
+
+    /**
+     * @param QueryBuilder $query
+     * @param array $options
      *
-     * @return QueryResultSet
+     * @return QueryBuilder
      */
-    private function query($string, $namedParams = [])
+    private function applyOptions(QueryBuilder $query, array $options)
     {
-        return $this->fetchRows($string, $namedParams);
-    }
-
-    /**
-     * @return QueryResultSet
-     */
-    protected function fetchRows($string, $namedParams = [])
-    {
-        $result = $this->bucket->query($this->createFromString($string, $namedParams), true);
-        return new QueryResultSet($result);
-    }
-
-    /**
-     * @return CouchbaseN1qlQuery
-     */
-    protected function createFromString($string, array $namedParams = [])
-    {
-        $query = CouchbaseN1qlQuery::fromString($string);
-
-        if ($namedParams) {
-            $query->namedParams($namedParams);
+        if (array_key_exists(self::OPTION_LIMIT, $options)) {
+            $query = $query->limit($options[self::OPTION_LIMIT]);
         }
 
         return $query;
     }
 
-    private function getSelectAll(array $append = [])
+    /**
+     * @return QueryBuilder
+     */
+    private function select()
     {
-        $select = 'SELECT * FROM `' . $this->bucketName . '`';
-
-        if ($append) {
-            $select .= ' ' . implode(' ', $append);
-        }
-
-        return $select;
+        return $this->queryBuilder->from($this->bucketName);
     }
 }

@@ -4,7 +4,6 @@ namespace Brofist\Couchbase;
 
 class QueryBuilder
 {
-
     /**
      * @var string
      */
@@ -33,6 +32,11 @@ class QueryBuilder
         return clone $this;
     }
 
+    /**
+     * @param string $from
+     *
+     * @return QueryBuilder
+     */
     public function from($from)
     {
         $new = clone $this;
@@ -40,6 +44,11 @@ class QueryBuilder
         return $new;
     }
 
+    /**
+     * @param array $conditions
+     *
+     * @return QueryBuilder
+     */
     public function where(array $conditions)
     {
         $new = clone $this;
@@ -47,6 +56,12 @@ class QueryBuilder
         return $new;
     }
 
+    /**
+     * @param int $limit
+     * @param int $offset
+     *
+     * @return QueryBuilder
+     */
     public function limit($limit, $offset = null)
     {
         $new = clone $this;
