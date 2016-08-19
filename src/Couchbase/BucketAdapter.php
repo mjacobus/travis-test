@@ -3,10 +3,17 @@
 namespace Brofist\Couchbase;
 
 use CouchbaseBucket;
+use CouchbaseException;
 use CouchbaseN1qlQuery;
 
 class BucketAdapter
 {
+    const OPTION_LIMIT = 'limit';
+
+    private $availableOptions = [
+        self::OPTION_LIMIT,
+    ];
+
     /**
      * @var CouchbaseBucket
      */
@@ -23,11 +30,52 @@ class BucketAdapter
         $this->bucketName = $bucketName;
     }
 
+    /**
+     * @see CouchbaseBucket::insert()
+     *
+     * @param mixed $id
+     * @param mixed $data
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function insert($id, $data, array $options = [])
+    {
+        return $this->bucket->insert($id, $data, $options);
+    }
+
+    /**
+     * @see CouchbaseBucket::upsert()
+     *
+     * @param mixed $id
+     * @param mixed $data
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function persist($id, $data, array $options = [])
+    {
+        return $this->bucket->upsert($id, $data, $options);
+    }
+
+    /**
+     * @throws CouchbaseException
+     *
+     * @return array
+     */
     public function findAll()
     {
         return $this->query($this->getSelectAll());
     }
 
+    /**
+     * @param array $conditions
+     * @param array $options 'limit' is an option
+     *
+     * @throws CouchbaseException
+     *
+     * @return QueryResultSet
+     */
     public function findAllBy(array $conditions, array $options = [])
     {
         $append = ['WHERE'];
@@ -47,6 +95,8 @@ class BucketAdapter
     }
 
     /**
+     * @throws CouchbaseException
+     *
      * @return QueryResultSet
      */
     private function query($string, $namedParams = [])

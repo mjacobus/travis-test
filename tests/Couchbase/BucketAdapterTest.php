@@ -65,6 +65,30 @@ class BucketAdapterTest extends PHPUnit_Framework_TestCase
     /**
      * @test
      */
+    public function canPersistData()
+    {
+        $this->bucket->upsert('foo', ['bar'], ['options'])->wilLReturn('returnValue');
+
+        $data = $this->adapter->persist('foo', ['bar'], ['options']);
+
+        $this->assertEquals('returnValue', $data);
+    }
+
+    /**
+     * @test
+     */
+    public function canInsertData()
+    {
+        $this->bucket->insert('foo', ['bar'], ['options'])->wilLReturn('returnValue');
+
+        $data = $this->adapter->insert('foo', ['bar'], ['options']);
+
+        $this->assertEquals('returnValue', $data);
+    }
+
+    /**
+     * @test
+     */
     public function canFindAllByConditionsAndLimit()
     {
         $query = $this->mockQuery('SELECT * FROM `bucketName` WHERE foo = $foo AND bar = $bar LIMIT 1');
