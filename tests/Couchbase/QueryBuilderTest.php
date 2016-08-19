@@ -4,7 +4,6 @@ namespace BrofistTest\Couchbase;
 
 use Brofist\Couchbase\QueryBuilder;
 use PHPUnit_Framework_TestCase;
-use Prophecy\Prophecy\ObjectProphecy;
 
 class QueryBuilderTest extends PHPUnit_Framework_TestCase
 {
