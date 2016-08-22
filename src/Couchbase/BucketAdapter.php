@@ -95,7 +95,7 @@ class BucketAdapter
      */
     protected function fetchAll(QueryBuilder $query, array $conditions = [])
     {
-        $n1ql = CouchbaseN1qlQuery::fromString($query->where($conditions));
+        $n1ql = CouchbaseN1qlQuery::fromString((string) $query->where($conditions));
 
         if ($conditions) {
             $n1ql->namedParams($conditions);
