@@ -111,6 +111,28 @@ class BucketAdapterTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(new QueryResultSet(new \StdClass()), $actual);
     }
 
+    /**
+     * @test
+     */
+    public function canFindOneByConditions()
+    {
+        $query = $this->mockQuery('SELECT * FROM `bucketName` WHERE foo = $foo AND bar = $bar LIMIT 1');
+
+        $query->namedParams([
+            'foo' => 'fooValue',
+            'bar' => 'barValue',
+        ]);
+
+        $actual = $this->adapter->findOneBy(
+            [
+                'foo' => 'fooValue',
+                'bar' => 'barValue',
+            ]
+        );
+
+        $this->assertEquals(new QueryResultSet(new \StdClass()), $actual);
+    }
+
     private function mockQuery($string)
     {
         $expectedQuery = CouchbaseN1qlQuery::fromString($string);

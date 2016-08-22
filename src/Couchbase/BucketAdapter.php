@@ -91,6 +91,18 @@ class BucketAdapter
     }
 
     /**
+     * @param array $conditions
+     *
+     * @throws CouchbaseException
+     *
+     * @return QueryResultSet
+     */
+    public function findOneBy(array $conditions)
+    {
+        return $this->findAllBy($conditions, ['limit' => 1]);
+    }
+
+    /**
      * @return QueryResultSet
      */
     protected function fetchAll(QueryBuilder $query, array $conditions = [])
