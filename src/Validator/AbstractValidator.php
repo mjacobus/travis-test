@@ -18,7 +18,7 @@ abstract class AbstractValidator implements ValidatorInterface, ValidateInterfac
      *
      * @param mixed data
      */
-    abstract public function performValidation($data);
+    abstract protected function performValidation($data);
 
     protected function clearErrors()
     {

@@ -22,7 +22,7 @@ class AbstractValidatorTest extends PHPUnit_Framework_TestCase
     {
         $this->validator = new class() extends AbstractValidator
         {
-            public function performValidation($data)
+            protected function performValidation($data)
             {
                 if ($data != 'validData') {
                     $this->addError('Invalid Data');
